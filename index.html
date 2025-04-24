@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Betting Hedge Calculator</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-[#0d1117] text-gray-200 font-sans min-h-screen flex items-center justify-center px-4">
+  <div class="bg-[#161b22] shadow-xl rounded-xl p-8 w-full max-w-lg">
+    <h2 class="text-2xl font-semibold mb-6 text-white">💰 Betting Hedge Calculator</h2>
+
+    <div class="mb-5">
+      <label for="totalAmount" class="block text-sm mb-1 text-gray-400">Total Amount to Bet</label>
+      <input type="number" id="totalAmount" placeholder="Enter total amount" class="w-full px-3 py-2 bg-[#0d1117] border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-500 text-white" />
+    </div>
+
+    <div class="mb-5">
+      <label for="team1Return" class="block text-sm mb-1 text-gray-400">Team 1 Return Multiplier</label>
+      <input type="number" id="team1Return" placeholder="e.g. 1.57" step="0.01" class="w-full px-3 py-2 bg-[#0d1117] border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-500 text-white" />
+    </div>
+
+    <div class="mb-6">
+      <label for="team2Return" class="block text-sm mb-1 text-gray-400">Team 2 Return Multiplier</label>
+      <input type="number" id="team2Return" placeholder="e.g. 2.05" step="0.01" class="w-full px-3 py-2 bg-[#0d1117] border border-gray-600 rounded-md focus:outline-none focus:ring focus:ring-blue-500 text-white" />
+    </div>
+
+    <button onclick="calculateBets()" class="w-full bg-blue-600 hover:bg-blue-700 transition text-white py-2 rounded-md font-medium">
+      Calculate Bets
+    </button>
+
+    <div class="mt-6" id="output"></div>
+  </div>
+
+  <script>
+    function calculateBets() {
+      const totalAmount = parseFloat(document.getElementById('totalAmount').value);
+      const r1 = parseFloat(document.getElementById('team1Return').value);
+      const r2 = parseFloat(document.getElementById('team2Return').value);
+
+      if (!totalAmount || !r1 || !r2 || r1 <= 0 || r2 <= 0) {
+        document.getElementById('output').innerHTML = '<p class="text-red-500">Please enter valid values.</p>';
+        return;
+      }
+
+      let x = (r2 * totalAmount) / (r1 + r2);
+      let y = totalAmount - x;
+
+      const maxBetTeam1 = 2100 / r1;
+      const maxBetTeam2 = 2100 / r2;
+
+      if (x > maxBetTeam1 || y > maxBetTeam2) {
+        const cap1 = maxBetTeam1 * (r1 + r2) / r2;
+        const cap2 = maxBetTeam2 * (r1 + r2) / r1;
+        const newTotal = Math.min(cap1, cap2);
+        x = (r2 * newTotal) / (r1 + r2);
+        y = newTotal - x;
+      }
+
+      const returnIfTeam1Wins = x * r1;
+      const returnIfTeam2Wins = y * r2;
+      const netIfTeam1Wins = returnIfTeam1Wins - (x + y);
+      const netIfTeam2Wins = returnIfTeam2Wins - (x + y);
+
+      document.getElementById('output').innerHTML = `
+        <div class="bg-[#1c2128] border border-green-700 text-green-300 p-4 rounded-lg">
+          <p><strong>Bet on Team 1:</strong> ₹${x.toFixed(2)}</p>
+          <p><strong>Bet on Team 2:</strong> ₹${y.toFixed(2)}</p>
+          <p><strong>Return if Team 1 Wins:</strong> ₹${returnIfTeam1Wins.toFixed(2)} (Net: ₹${netIfTeam1Wins.toFixed(2)})</p>
+          <p><strong>Return if Team 2 Wins:</strong> ₹${returnIfTeam2Wins.toFixed(2)} (Net: ₹${netIfTeam2Wins.toFixed(2)})</p>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
